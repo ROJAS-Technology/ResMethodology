@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDE Edito Rojas</title>
+
+
+    <style>
+        /* Reset básico para eliminar todos los márgenes externos */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #a4fcf4; /* Fondo celeste claro interior */
+            font-family: Arial, sans-serif;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Evita barras de scroll innecesarias en pantalla completa */
+        }
+
+        /* Contenedor principal: Ahora ocupa el 100% de la pantalla */
+        .ide-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Encabezado superior de borde a borde */
+        .header {
+            background-color: #900; /* Rojo oscuro */
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .header h1 {
+            font-size: clamp(1.1rem, 2.5vw, 1.8rem);
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+
+        .logo-placeholder {
+            background-color: white;
+            color: black;
+            border-radius: 50%;
+            width: 90px;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* Cuerpo principal estirado */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 2fr; /* Dos columnas en PC */
+            gap: 30px;
+            padding: 30px;
+            flex-grow: 1;
+            align-items: center; /* Centra verticalmente los elementos internos */
+        }
+
+        /* Columna izquierda: Cuadro gris */
+        .left-panel {
+            background-color: #999;
+            color: white;
+            border: 2px solid #ccc;
+            aspect-ratio: 3 / 4;
+            max-height: 70vh; /* Evita que crezca infinitamente hacia abajo */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+            justify-self: center; /* Centra el panel en su columna */
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .left-panel h2 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        /* Columna derecha: Botones estirados a lo ancho */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            justify-content: flex-end;
+        }
+
+        /* Botones de menú */
+        .menu-button {
+            background-color: #00f;
+            color: white;
+            border: none;
+            padding: 22px;
+            font-weight: bold;
+            font-size: clamp(1.3rem, 2.8vw, 1.8rem);
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            text-align: center;
+            width: 85%;
+        }
+
+        /* Contenedor circular del código */
+        .code-circle {
+            background-color: #222;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            border-radius: 50%;
+            width: 320px;
+            height: 320px;
+            margin: 20px auto 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            padding: 20px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            transition: background 0.2s;
+            letter-spacing: 1px; /* 👈 Un poco de separación entre letras para mejor lectura */
+        }
+
+
+        /* Nueva animación continua de derecha a izquierda */
+        .marquee-marquee {
+            /*display: inline-block;*/
+            /*padding-left: 100%;*/
+            display: flex; /* Cambiado a flex para alinear los elementos en línea sin espacios raros */
+            white-space: nowrap;         
+            animation: moverIzquierda 15s linear infinite;
+        }
+
+        .marquee-marquee span {
+            font-size: clamp(1.1rem, 2.5vw, 1.8rem);
+            font-weight: bold;
+            color: white;
+            padding-right: 50px; /* Espacio de separación entre cada título */
+        }
+
+        @keyframes moverIzquierda {
+            0% {
+               transform: translate3d(0, 0, 0);
+            }
+            100% {
+                 transform: translate3d(-50%, 0, 0);
+            }
+        }
+
+
+
+
+
+
+        /* ======================================================= */
+        /* RESPONSIVIDAD: Adaptación exacta para celulares */
+        /* ======================================================= */
+        @media (max-width: 768px) {
+            body {
+                overflow-y: auto; /* Permite scroll si la pantalla del celular es muy pequeña */
+            }
+
+            .content {
+                grid-template-columns: 1fr; /* Una sola columna vertical */
+                gap: 20px;
+                padding: 15px;
+            }
+
+            .left-panel {
+                max-width: 280px;
+            }
+
+            .code-circle {
+                width: 150px;
+                height: 150px;
+                font-size: 0.65rem;
+             }
+         }
+
+
+
+/* Esto preparará la barra del menú para recibir la foto */
+nav {
+    position: relative !important;
+}
+
+/* Esto obligará a la foto a irse al extremo derecho de la barra blanca */
+.perfil-mundo {
+    position: absolute !important;
+    right: 25px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important; /* La centra perfectamente de forma vertical */
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-block !important;
+}
+
+/* Estilo final de tu foto redonda */
+.perfil-mundo img {
+    width: 35px !important;
+    height: 35px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    border: 2px solid #7a1d1d !important; /* Borde guinda que combina con tu web */
+    display: block !important;
+}
+
+
+
+
+
+
+           .nav-active {
+                color: #ffffff !important;
+                background-color: #8f1c1c;
+                padding: 6px 12px;
+                border-radius: 4px;
+            }
+
+
+
+
+    </style>
+
+
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+
+
+</head>
+
+<body>
+
+
+
+<!-- Reproductor de audio oculto -->
+
+<audio id="musica-fondo" loop>
+    <source src="music/Conquest of Paradise - Andy Cruise.mp3" type="audio/mpeg">
+    Tu navegador no soporta el elemento de audio.
+</audio>
+
+<!-- Botón opcional para controlar la música -->
+<button id="btn-musica" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; padding: 10px; background: #7a1d1d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+    🎵 Play Música
+</button>
+
+<!--   bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  -->
+
+
+
+
+
+
+    <div class="ide-container">
+        <!-- 1. ENCABEZADO CON LOS LOGOS DE LA UNI Y LA UNTAC -->
+        <header class="header">
+
+            <div class="logo-placeholder" style="width: 80px; height: 95px; border-radius: 4px; overflow: hidden; padding: 4px; background-color: white; display: flex; justify-content: center; align-items: center; flex-shrink: 0;">
+                <img src="LoUNI_13.png" alt="Logo UNI" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+
+
+
+           <!-- Reemplaza el bloque del título por este con movimiento continuo 👇 -->
+               <div style="flex-grow: 1; 
+                           overflow: hidden; 
+                           white-space: nowrap; 
+                           margin: 0 20px; 
+                           display: flex;">
+
+                   <div class="marquee-marquee">
+                       <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+                       <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+                       <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+                       <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+                       <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+                       <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+
+                   </div>
+               </div>
+
+
+
+
+
+
+
+        <!-- Reemplaza el logo de la UNTAC por este contenedor rectangular 👇 -->
+        <div class="logo-placeholder" style="width: 80px; height: 95px; border-radius: 4px; overflow: hidden; padding: 4px; background-color: white; display: flex; justify-content: center; align-items: center; flex-shrink: 0;">
+        <img src="LoUNTAC_2.png" alt="Logo UNTAC" style="width: 100%; height: 100%; object-fit: contain;">
+
+        </header>
+
+
+        <!-- Barra de Menús Horizontal 👇 -->
+        <nav style="background-color: #f0f0f0; width: 100%; border-bottom: 2px solid #ccc; padding: 10px 20px;">
+             <div style="display: flex; gap: 25px; flex-wrap: wrap;">
+                 <a href="index.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Introduction</a>
+                 <a href="books.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Books</a>
+                 <a href="paper.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Paper</a>
+                 <a href="WebLink.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">WebLink</a>
+
+                 <!--<a href="thesis.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Thesis</a>-->
+
+                 <a href="thesis.html" style="font-weight: bold; color: #fff; background-color: #8f1c1c; text-decoration: none; font-size: 1.1rem; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; line-height: 1;">Thesis</a>
+
+
+
+                 <a href="doc-upg.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Doc-UPG</a>
+                 <a href="statistical.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Statistical</a>
+
+
+            </div>
+
+            <!-- Añade este contenedor para tu foto -->
+            <div class="perfil-mundo">
+                 <img src="foto_01.jpg" alt="Mi Foto">
+            </div>
+
+
+
+        </nav>
+
+
+
+
+        <!-- CONTENIDO PRINCIPAL -->
+
+<!-- SECCIÓN PRINCIPAL: PAPER -->
+<main class="content" style="padding-top: 50px; padding-left: 20px; display: block;">
+
+    <!-- Contenedor flexible para los dos documentos -->
+    <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+
+
+        <div style="width: 120px; text-align: center; font-family: sans-serif;">
+            <a href="Thesis/Tesis doctoral_Leandro_Bolzoni.pdf" target="_blank" style="text-decoration: none; color: #1c4b8f;">
+
+                <img src="tesis.png" alt="" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 8px;">
+
+                <span style="font-size: 0.9rem; font-weight: bold; display: block; line-height: 1.2;">
+                    Diseño y Procesado de Aleaciones de Titanio mediante Técnicas Pulvimetalúrgicas Avanzadas
+                </span>
+            </a>
+        </div>
+
+   
+
+
+ 
+        <div style="width: 120px; text-align: center; font-family: sans-serif;">
+            <a href="Thesis/Tesis doctoral DiMarco.pdf" target="_blank" style="text-decoration: none; color: #1c4b8f;">
+
+                <img src="tesis.png" alt="" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 8px;">
+
+                <span style="font-size: 0.9rem; font-weight: bold; display: block; line-height: 1.2;">
+                     Metalogénesis de los Depósitos de Cobre-Hierro y otros elementos Metálicos asociados en Anfibolitas de las fajas Central y Oriental del Centro Sur de las Sierras de Cordoba
+                </span>
+            </a>
+        </div>
+
+
+
+
+
+ 
+        <div style="width: 120px; text-align: center; font-family: sans-serif;">
+            <a href="Thesis/PhD Thesis_Forecasting unrest & eruption at Calderas, Southern Italy_ A. Steele 2018.pdf" target="_blank" style="text-decoration: none; color: #1c4b8f;">
+
+                <img src="tesis.png" alt="" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 8px;">
+
+                <span style="font-size: 0.9rem; font-weight: bold; display: block; line-height: 1.2;">
+                     PhD Thesis_Forecasting unrest & eruption at Calderas, Southern Italy_ A. Steele 2018
+                </span>
+            </a>
+        </div>
+
+
+
+        <div style="width: 120px; text-align: center; font-family: sans-serif;">
+            <a href="Thesis/Application_of_artificial_neural_network_systems.pdf" target="_blank" style="text-decoration: none; color: #1c4b8f;">
+
+                <img src="tesis.png" alt="" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 8px;">
+
+                <span style="font-size: 0.9rem; font-weight: bold; display: block; line-height: 1.2;">
+                     Application of Artificial Neural Network Systems to Grade Estimation from Exploration Data
+                </span>
+            </a>
+        </div>
+
+
+
+        <div style="width: 120px; text-align: center; font-family: sans-serif;">
+            <a href="Thesis/tesis doctoral de Edito Rojas.pdf" target="_blank" style="text-decoration: none; color: #1c4b8f;">
+
+                <img src="tesis.png" alt="" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 8px;">
+
+                <span style="font-size: 0.9rem; font-weight: bold; display: block; line-height: 1.2;">
+                     Enfoque Predictivo para la Optimización del tamaño de Fragmentación en base a Técnicas de Perforación y Voladura de Rocas
+                </span>
+            </a>
+        </div>
+
+
+
+        <div style="width: 120px; text-align: center; font-family: sans-serif;">
+            <a href="Thesis/Pablo_Segarra_Catasus tesis doctoral fragmentacion.pdf" target="_blank" style="text-decoration: none; color: #1c4b8f;">
+
+                <img src="tesis.png" alt="" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 8px;">
+
+                <span style="font-size: 0.9rem; font-weight: bold; display: block; line-height: 1.2;">
+                     Análisis Experimental de la Fragmentación, Vibraciones y Movimiento de la Roca en Voladuras a Cielo Abierto
+                </span>
+            </a>
+        </div>
+
+
+        <div style="width: 120px; text-align: center; font-family: sans-serif;">
+            <a href="Thesis/zippe2.pdf" target="_blank" style="text-decoration: none; color: #1c4b8f;">
+
+                <img src="tesis.png" alt="" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 8px;">
+
+                <span style="font-size: 0.9rem; font-weight: bold; display: block; line-height: 1.2;">
+                     The Development of Short Bowl Ultracentrifuges
+                </span>
+            </a>
+        </div>
+
+
+
+
+    </div>
+
+
+
+</main>
+
+
+
+
+<script>
+
+
+
+
+    // ==========================================
+    // 1. CONTROL DE LA MÚSICA (Tu código original integrado)
+    // ==========================================
+
+    const musica = document.getElementById('musica-fondo');
+    const boton = document.getElementById('btn-musica');
+
+    // 1. Intenta reproducir automáticamente tras el primer clic en cualquier parte de la web
+    document.addEventListener('click', () => {
+        musica.play().catch(error => {
+            console.log("El navegador bloqueó la reproducción automática inicial.");
+        });
+    }, { once: true }); // '{ once: true }' asegura que esto solo se ejecute con el primer clic
+
+    // 2. Control manual con el botón de la esquina inferior derecha
+    boton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evita conflictos con el clic general
+        if (musica.paused) {
+            musica.play();
+            boton.textContent = '⏸️ Pause Música';
+        } else {
+            musica.pause();
+            boton.textContent = '🎵 Play Música';
+        }
+    });
+
+
+
+
+
+
+
+    // 1. Buscador directo de tus enlaces del menú
+    const enlaces = document.querySelectorAll('nav a');
+    
+    // 2. La lista exacta de tus archivos .html en tu carpeta
+    const paginas = [
+        "index.html",
+        "books.html",
+        "paper.html",
+        "weblink.html",
+        "thesis.html",
+        "doc-upg.html",
+        "statistical.html"
+    ];
+
+    // 3. Detectamos en qué archivo está parado el navegador en este segundo
+    const archivoActual = window.location.pathname.split("/").pop() || "index.html";
+    let posicionActual = paginas.indexOf(archivoActual);
+    if (posicionActual === -1) posicionActual = 0;
+
+    // 4. Función directa que salta al siguiente archivo físico
+    function rotarPaginaReal() {
+        const siguientePosicion = (posicionActual + 1) % paginas.length;
+        window.location.href = paginas[siguientePosicion];
+    }
+
+    // 5. Activamos el temporizador de 5 segundos
+    let temporizadorPagina = setInterval(rotarPaginaReal, 5000);
+
+    // 6. FRENO DE MANO TOTAL: Función que guarda la marca de control y apaga el bucle
+    function tomarControlUsuario() {
+        clearInterval(temporizadorPagina);
+        sessionStorage.setItem('manual-unmsm', 'activo');
+        console.log("¡Control absoluto tomado por el usuario!");
+    }
+
+    // Si el usuario hace clic EN CUALQUIER PARTE de la página (un libro, un botón azul, etc.)
+    document.addEventListener('mousedown', tomarControlUsuario);
+
+    // Si el usuario presiona CUALQUIER TECLA en su computadora
+    document.addEventListener('keydown', tomarControlUsuario);
+
+
+    // 7. Freno de seguridad: si ya dio clic antes, que no se mueva solo al cargar
+    if (sessionStorage.getItem('manual-unmsm') === 'activo') {
+        clearInterval(temporizadorPagina);
+    }
+
+
+
+
+</script>
+
+
+
+
+
+</body>
+
+
+</html>

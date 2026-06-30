@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDE Edito Rojas</title>
+
+    <style>
+        /* Reset básico para eliminar todos los márgenes externos */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #a4fcf4; /* Fondo celeste claro interior */
+            font-family: Arial, sans-serif;
+            width: 100%;
+            height: 100vh;
+            overflow-y: auto;  /* Activa el scroll vertical si el contenido baja */
+        }
+
+        /* Contenedor principal: Ahora ocupa el 100% de la pantalla */
+        .ide-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Encabezado superior de borde a borde */
+        .header {
+            background-color: #900; /* Rojo oscuro */
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .header h1 {
+            font-size: clamp(1.1rem, 2.5vw, 1.8rem);
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+
+        .logo-placeholder {
+            background-color: white;
+            color: black;
+            border-radius: 50%;
+            width: 90px;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* Cuerpo principal estirado */
+        .content {
+            position: relative;
+            width: 100%;
+            flex-grow: 1;
+        }
+
+        /* Nueva animación continua de derecha a izquierda */
+        .marquee-marquee {
+            display: flex; 
+            white-space: nowrap;         
+            animation: moverIzquierda 15s linear infinite;
+        }
+
+        .marquee-marquee span {
+            font-size: clamp(1.1rem, 2.5vw, 1.8rem);
+            font-weight: bold;
+            color: white;
+            padding-right: 50px; /* Espacio de separación entre cada título */
+        }
+
+        @keyframes moverIzquierda {
+            0% {
+               transform: translate3d(0, 0, 0);
+            }
+            100% {
+                 transform: translate3d(-50%, 0, 0);
+            }
+        }
+
+
+
+        /* ======================================================= */
+        /* REGLAS PARA MANEJAR EL CAMBIO DE TAMAÑO FLUIDO (PC A CELULAR) */
+        /* ======================================================= */
+
+
+        /* ======================================================= */
+        /* RESPONSIVIDAD: Adaptación exacta para celulares */
+        /* ======================================================= */
+        /*@media (max-width: 1024px) {*/
+        @media (max-width: 1024px) {
+            body, .ide-container {
+                height: auto !important;
+                overflow-y: auto !important;
+            }
+            main.content {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                padding: 20px !important;
+                gap: 35px !important;
+            }
+            main.content img[src="distN.png"] {
+                float: none !important;
+                margin: 0 auto !important;
+            }
+            /* Apaga las posiciones fijas absolutas solo en pantallas chicas */
+            main.content h3,
+            main.content img[src="finitas.png"],
+            main.content img[src="Stad_02.png"],
+            main.content div.calc-muestra-box {
+                position: static !important;
+                width: 100% !important;
+                max-width: 400px !important;
+                margin: 0 auto !important;
+                top: auto !important;
+                left: auto !important;
+                right: auto !important;
+            }
+        }
+
+
+
+
+
+/* Esto preparará la barra del menú para recibir la foto */
+nav {
+    position: relative !important;
+}
+
+/* Esto obligará a la foto a irse al extremo derecho de la barra blanca */
+.perfil-mundo {
+    position: absolute !important;
+    right: 25px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important; /* La centra perfectamente de forma vertical */
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-block !important;
+}
+
+/* Estilo final de tu foto redonda */
+.perfil-mundo img {
+    width: 35px !important;
+    height: 35px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    border: 2px solid #7a1d1d !important; /* Borde guinda que combina con tu web */
+    display: block !important;
+}
+
+
+
+        .nav-active {
+            color: #ffffff !important;
+            background-color: #8f1c1c;
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+
+
+
+
+        /* ======================================================== */
+        /* NUEVOS ESTILOS EXCLUSIVOS PARA LA CALCULADORA ESTADÍSTICA */
+        /* ======================================================== */
+        .calc-muestra-box {
+            background: white;
+            border: 2px solid #ccc;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+
+        .calc-muestra-title {
+            color: #8f1c1c;
+            margin-top: 0;
+
+            /*font-size: 1.3rem;*/
+            font-size: clamp(0.9rem, 2vw, 1.3rem); /* 👈 Se achica dinámicamente */
+
+            text-transform: uppercase;
+            border-bottom: 2px solid #8f1c1c;
+            padding-bottom: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .calc-muestra-group {
+            margin-bottom: 12px;
+            text-align: left;
+        }
+        .calc-muestra-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: bold;
+            color: #333;
+            font-size: 0.95rem;
+        }
+        .calc-muestra-group input {
+            padding: 8px;
+            width: 100%;
+            font-size: 1.1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .calc-muestra-btn {
+            background-color: #8f1c1c;
+            color: white;
+            border: none;
+            padding: 12px;
+
+            /*font-size: 1.1rem;*/
+            font-size: clamp(0.85rem, 1.8vw, 1.1rem); /* 👈 Se achica dinámicamente */
+
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+            width: 100%;
+            margin-top: 5px;
+            text-transform: uppercase;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+        }
+        .calc-muestra-btn:hover {
+            background-color: #6e1515;
+        }
+
+
+        .calc-muestra-res-container {
+            /*font-size: 1.05rem;*/
+            font-size: clamp(0.8rem, 1.6vw, 1rem); /* 👈 Ajuste elástico general */
+
+            margin-top: 15px;
+            padding: 12px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+
+
+.calc-muestra-res-container strong {
+    /*font-size: 0.92rem !important;*/ /* 👈 Lo achica un poco desde el inicio */
+    /*font-weight: bold;*/
+
+    font-size: clamp(0.95rem, 1.8vw, 1rem) !important;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+
+.calc-muestra-linea {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Centra el contenido verticalmente */
+    margin-bottom: 6px;
+    border-bottom: 1px dashed #ccc;
+    padding-bottom: 4px;
+    color: #333;
+    
+    /* 1. SE METIÓ AQUÍ ADENTRO la fuente elástica para "Muestra requerida (n)" */
+    font-size: clamp(0.75rem, 4vw, 0.95rem) !important;
+}
+
+#calc_muestra_final {
+    font-weight: bold;
+    color: #155724;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    display: inline-block;
+    text-align: center;
+    word-spacing: 9999px;
+    
+    /* 2. SE LIMPIARON LOS PARCHES DUPLICADOS y se cambiaron a unidades em */
+    padding: 0.3em 0.5em !important;    /* Espaciado interno proporcional */
+    max-width: 4.5em !important;         /* Ancho compacto proporcional */
+    font-size: 0.85em !important;       /* Tamaño de letra un poco menor que el texto de la izquierda */
+}
+
+/* 3. Mantiene la regla para controlar la última fila */
+.calc-muestra-res-container div:last-child {
+    /*font-size: clamp(1rem, 2vw, 1.3rem) !important;*/
+    font-size: inherit !important;  
+}
+
+/* 4. Mantiene intacta la posición original de tu calculadora en PC */
+main > div.calc-muestra-box, main > .calc-muestra-box {
+    position: absolute !important;
+    top: 80px !important; 
+    left: 1150px;
+    margin: 0 !important;
+}
+
+
+
+
+/* ======================================================= */
+/* RENDERIZADO ELÁSTICO UNIVERSAL PARA PC Y LAPTOPS CHICAS */
+/* ======================================================= */
+@media (min-width: 1025px) {
+    
+    /* 1. La tabla izquierda usa porcentaje del ancho para encogerse si el espacio se reduce */
+    main.content img[src="distN.png"] {
+        width: 25% !important; 
+        max-width: 400px !important;
+        height: auto !important;
+        margin: 80px 2% 30px 4% !important; /* Márgenes fluidos en porcentaje */
+    }
+
+    /* 2. El título del centro se posiciona de forma elástica al 33% de la pantalla */
+    main.content h3 {
+        left: 33% !important;
+        width: 30% !important;
+        max-width: 420px !important;
+    }
+
+    /* 3. Las imágenes centrales se encogen y se adaptan solas al ritmo de la ventana */
+    main.content img[src="finitas.png"] {
+        left: 33% !important;
+        width: 30% !important;
+        max-width: 420px !important;
+        height: auto !important;
+    }
+
+    main.content img[src="Stad_02.png"] {
+        left: 33% !important;
+        width: 30% !important;
+        max-width: 420px !important;
+        height: auto !important;
+    }
+
+    /* 4. El cuadro blanco se clava al 75% de la pantalla para dejarle espacio a las imágenes */
+    main > div.calc-muestra-box, main > .calc-muestra-box {
+        position: absolute !important;
+        top: 80px !important;
+        right: auto !important;
+        left: 70% !important; /* 👈 Bloqueado en porcentaje respecto al tamaño del monitor actual */
+
+        /*width: 23% !important;*/
+        width: 26% !important; /* Le damos un poco más de margen elástico */
+
+        /*max-width: 400px !important;*/
+        max-width: 380px !important;
+
+        /*min-width: 280px !important;*/ /* Evita que el formulario se deforme en pantallas de 12 pulgadas */
+        padding: 15px !important; /* Reduce el relleno interno para ganar espacio al encogerse */
+    }
+}
+
+
+
+
+    </style>
+
+    <link rel="icon" href="foto_01.png" type="image/x-icon">
+
+</head>
+
+
+<body>
+
+
+
+<!-- Reproductor de audio oculto -->
+
+<audio id="musica-fondo" loop>
+    <source src="music/IA.mp3" type="audio/mpeg">
+    Tu navegador no soporta el elemento de audio.
+</audio>
+
+<!-- Botón opcional para controlar la música -->
+<button id="btn-musica" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; padding: 10px; background: #7a1d1d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+    🎵 Play Música
+</button>
+
+<!--   bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  -->
+
+
+
+
+    <div class="ide-container">
+        <!-- 1. ENCABEZADO CON LOS LOGOS DE LA UNI Y LA UNTAC -->
+        <header class="header">
+            <div class="logo-placeholder" style="width: 80px; height: 95px; border-radius: 4px; overflow: hidden; padding: 4px; background-color: white; display: flex; justify-content: center; align-items: center; flex-shrink: 0;">
+                <img src="LoUNI_13.png" alt="Logo UNI" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+
+            <div style="flex-grow: 1; overflow: hidden; white-space: nowrap; margin: 0 20px; display: flex;">
+                <div class="marquee-marquee">
+                    <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+                    <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+                    <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+                    <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+                    <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+                    <span>UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS  </span>
+                </div>
+            </div>
+
+            <div class="logo-placeholder" style="width: 80px; height: 95px; border-radius: 4px; overflow: hidden; padding: 4px; background-color: white; display: flex; justify-content: center; align-items: center; flex-shrink: 0;">
+                <img src="LoUNTAC_2.png" alt="Logo UNTAC" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+        </header>
+
+        <!-- Barra de Menús Horizontal -->
+        <nav style="background-color: #f0f0f0; width: 100%; border-bottom: 2px solid #ccc; padding: 10px 20px;">
+             <div style="display: flex; gap: 25px; flex-wrap: wrap;">
+                 <a href="index.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Introduction</a>
+                 <a href="books.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Books</a>
+                 <a href="paper.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Paper</a>
+                 <a href="weblink.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">WebLink</a>
+                 <a href="thesis.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Thesis</a>
+                 <a href="doc-upg.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Doc-UPG</a>
+
+                 <!--<a href="statistical.html" style="font-weight: bold; color: #333; text-decoration: none; font-size: 1.1rem; text-transform: uppercase;">Statistical</a>-->
+
+
+                 <a href="statistical.html" style="font-weight: bold; color: #fff; background-color: #8f1c1c; text-decoration: none; font-size: 1.1rem; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; line-height: 1;">Statistical</a>
+
+
+            </div>
+
+
+            <!-- Añade este contenedor para tu foto -->
+            <div class="perfil-mundo">
+                 <img src="foto_01.jpg" alt="Mi Foto">
+            </div>
+
+
+
+
+        </nav>
+
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <!-- CONTENIDO PRINCIPAL -->       
+        <!-- CONTENIDO PRINCIPAL -->
+
+
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="content">
+           <img src="distN.png" alt="Tabla Distribución Normal" style="width: 100%; max-width: 400px; height: auto; aspect-ratio: 3 / 4; object-fit: fill; display: block; float: left; margin: 80px 30px 30px 100px;">
+
+           <!--<h3 style="position: absolute; top: 80px; left: 220px; width: 120px; text-align: center; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; z-index: 100;">ECUACION DE MUESTRA FINITA</h3>-->
+
+
+
+
+           <!--<<h3 style="position: absolute; top: 80px; left: 50px; width: auto; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; z-index: 100;">ECUACION DE MUESTRA FINITA</h3>-->
+
+
+
+           <!--<h3 style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); width: auto; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; z-index: 100;">ECUACION DE MUESTRA FINITA</h3>-->
+
+
+           <!--<h3 style="text-align: center; margin-top: 80px; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase;">ECUACION DE MUESTRA FINITA</h3>-->
+
+
+           <!--<h3 style="position: relative; text-align: center; margin-top: 20px; margin-bottom: 20px; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; z-index: 100;">ECUACION DE MUESTRA FINITA</h3>-->
+
+
+
+
+          <!--<h3 style="position: absolute; top: 80px; left: 480px; width: 350px; text-align: center; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; z-index: 100;">ECUACION DE MUESTRA FINITA</h3>-->
+
+
+          <h3 style="position: absolute; top: 85px; left: 520px; width: 350px; text-align: center; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; z-index: 100; margin: 0;">ANALISIS PARA MUESTRAS FINITAS</h3>
+
+
+
+
+
+
+           <!--<h3 style="position: absolute; top: 80px; left: 420px; width: 350px; text-align: center; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; z-index: 100;">ECUACION DE MUESTRA FINITA</h3>-->
+
+           <!--<h3 style="position: absolute; top: 80px; left: 460px; width: 350px; text-align: center; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; z-index: 100; clear: both;">ECUACION DE MUESTRA FINITA</h3>-->
+
+
+           <!--<h3 style="position: absolute; top: 80px; left: 0; width: 100%; text-align: center; padding-right: 250px; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; z-index: 100; box-sizing: border-box;">ECUACION DE MUESTRA FINITA</h3>-->
+
+
+           <!--<h3 style="position: absolute !important; top: 80px !important; left: 650px !important; width: 420px !important; text-align: center !important; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; z-index: 9999 !important;">ECUACION DE MUESTRA FINITA</h3>-->
+
+          <!--<h3 style="position: absolute; top: 80px; left: 520px; width: 350px; text-align: center; font-family: Arial, sans-serif; color: #8f1c1c; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; z-index: 100;">ECUACION DE MUESTRA FINITA</h3>-->
+
+
+
+
+
+
+
+           <!--<img src="finitas.png" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 130px; left: 620px; width: 420px; height: auto; object-fit: contain; z-index: 100;">-->
+
+           <!--<img src="finitas.png" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 130px; left: 450px; width: 420px; height: auto; object-fit: contain; z-index: 100;">-->
+
+           <!--<img src="finitas.png" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 130px; left: 650px !important; width: 420px; height: auto; object-fit: contain; z-index: 100;">-->
+
+           <!--<img src="finitas.png" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 130px; left: 520px; width: 350px; height: auto; object-fit: contain; z-index: 100;">-->
+
+           <!--<img src="finitas.png" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 130px; left: 250px; width: 350px; height: auto; object-fit: contain; z-index: 100;">-->
+           
+           <!-- CAMBIA EL LEFT DE LA ECUACIÓN A 470px PARA QUE SE CORRA A LA IZQUIERDA -->
+           <!--<img src="finitas.png" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 130px; left: 470px; width: 350px; height: auto; object-fit: contain; z-index: 100;">-->
+           <!--<img src="finitas.png" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 130px; left: 450px; width: 350px; height: auto; object-fit: contain; z-index: 10;">-->
+
+           <!--<img src="finitas.png" id="formula-finitas-unica" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 130px; left: 450px; width: 350px; height: auto; object-fit: contain; z-index: 100;">-->
+
+           <img src="finitas.png" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 130px; left: 520px; width: 350px; height: auto; object-fit: contain; z-index: 100;">
+
+
+           <!--<img src="Stad_02.png" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 280px; left: 620px; width: 420px; height: auto; object-fit: contain; z-index: 100;">-->
+
+           <!--<img src="Stad_02.png" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 280px; left: 650px !important; width: 420px; height: auto; object-fit: contain; z-index: 100;">-->
+
+           <img src="Stad_02.png" alt="Fórmula Poblaciones Finitas" style="position: absolute; top: 280px; left: 520px; width: 350px; height: auto; object-fit: contain; z-index: 100;">
+
+
+
+
+           <div class="calc-muestra-box">
+                <div class="calc-muestra-box">
+                    <h2 class="calc-muestra-title">Tamaño de la Muestra</h2>
+                    
+                    <div class="calc-muestra-group">
+                        <label for="calc_inputN">Población de usuarios (N):</label>
+                        <input type="number" id="calc_inputN" value="10000">
+                    </div>
+
+                    <div class="calc-muestra-group">
+                        <label for="calc_inputNC">Nivel de Confianza (NC %):</label>
+                        <input type="text" id="calc_inputNC" value="95">
+                    </div>
+
+                    <div class="calc-muestra-group">
+                        <label for="calc_inputP">Proporción esperada (p %):</label>
+                        <input type="text" id="calc_inputP" value="50">
+                    </div>
+
+                    <button id="calc_btnMuestra" class="calc-muestra-btn">Calcular Muestra (n)</button>
+
+                    <div class="calc-muestra-res-container">
+                        <div class="calc-muestra-linea">
+                            <span>Valor de Z obtenido:</span>
+                            <span id="calc_resZ" style="font-weight:bold;">-</span>
+                        </div>
+                        <div class="calc-muestra-linea">
+                            <span>Margen de error (e):</span>
+                            <span id="calc_resE" style="font-weight:bold;">-</span>
+                        </div>
+
+     
+                        <!--<div class="calc-muestra-linea" style="border:none; margin-top:15px; font-size:1.3rem;">-->
+                            <!--<strong>Muestra requerida (n):</strong>-->
+                            <!--<span id="calc_muestra_final">0</span>-->
+                        <!--</div>-->
+      
+
+                        <!--<div class="calc-muestra-linea" style="border:none; margin-top:15px; align-items: center;"-->
+                        <div class="calc-muestra-linea" style="border:none; margin-top:15px; font-size: clamp(0.75rem, 3.5vw, 1.1rem) !important;">
+
+                            <!--<span style="font-size: 1.15rem; font-weight: bold; color: #333;">Muestra requerida (n):</span>-->
+
+                            <!--<span style="font-size: clamp(0.75rem, 3.5vw, 1.1rem) !important; font-weight: bold; color: #333;">Muestra requerida (n):</span>-->
+
+                             <span style="font-size: 1rem; font-weight: bold; color: #333;">Muestra requerida (n):</span>
+
+
+                            <span id="calc_muestra_final">0</span>
+                        </div>
+
+
+                    </div>
+                </div>
+             </div>
+        </main>
+
+
+
+
+
+    </div>
+
+
+
+<script>
+
+
+    // ==========================================
+    // 1. CONTROL DE LA MÚSICA (Tu código original integrado)
+    // ==========================================
+
+    const musica = document.getElementById('musica-fondo');
+    const boton = document.getElementById('btn-musica');
+
+    // 1. Intenta reproducir automáticamente tras el primer clic en cualquier parte de la web
+    document.addEventListener('click', () => {
+        musica.play().catch(error => {
+            console.log("El navegador bloqueó la reproducción automática inicial.");
+        });
+    }, { once: true }); // '{ once: true }' asegura que esto solo se ejecute con el primer clic
+
+    // 2. Control manual con el botón de la esquina inferior derecha
+    boton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evita conflictos con el clic general
+        if (musica.paused) {
+            musica.play();
+            boton.textContent = '⏸️ Pause Música';
+        } else {
+            musica.pause();
+            boton.textContent = '🎵 Play Música';
+        }
+    });
+
+
+
+
+</script>
+
+
+<script>
+
+
+    // ==========================================
+    // 1. CONTROL DE LA MÚSICA (Tu código original integrado)
+    // ==========================================
+
+    const musica = document.getElementById('musica-fondo');
+    const boton = document.getElementById('btn-musica');
+
+    // 1. Intenta reproducir automáticamente tras el primer clic en cualquier parte de la web
+    document.addEventListener('click', () => {
+        musica.play().catch(error => {
+            console.log("El navegador bloqueó la reproducción automática inicial.");
+        });
+    }, { once: true }); // '{ once: true }' asegura que esto solo se ejecute con el primer clic
+
+    // 2. Control manual con el botón de la esquina inferior derecha
+    boton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evita conflictos con el clic general
+        if (musica.paused) {
+            musica.play();
+            boton.textContent = '⏸️ Pause Música';
+        } else {
+            musica.pause();
+            boton.textContent = '🎵 Play Música';
+        }
+    });
+
+
+
+
+
+
+
+    // 1. Buscador directo de tus enlaces del menú
+    const enlaces = document.querySelectorAll('nav a');
+    
+    // 2. La lista exacta de tus archivos .html en tu carpeta
+    const paginas = [
+        "index.html",
+        "books.html",
+        "paper.html",
+        "weblink.html",
+        "thesis.html",
+        "doc-upg.html",
+        "statistical.html"
+    ];
+
+    // 3. Detectamos en qué archivo está parado el navegador en este segundo
+    const archivoActual = window.location.pathname.split("/").pop() || "index.html";
+    let posicionActual = paginas.indexOf(archivoActual);
+    if (posicionActual === -1) posicionActual = 0;
+
+    // 4. Función directa que salta al siguiente archivo físico
+    function rotarPaginaReal() {
+        const siguientePosicion = (posicionActual + 1) % paginas.length;
+        window.location.href = paginas[siguientePosicion];
+    }
+
+    // 5. Activamos el temporizador de 5 segundos
+    let temporizadorPagina = setInterval(rotarPaginaReal, 5000);
+
+    // 6. FRENO DE MANO TOTAL: Función que guarda la marca de control y apaga el bucle
+    function tomarControlUsuario() {
+        clearInterval(temporizadorPagina);
+        sessionStorage.setItem('manual-unmsm', 'activo');
+        console.log("¡Control absoluto tomado por el usuario!");
+    }
+
+    // Si el usuario hace clic EN CUALQUIER PARTE de la página
+    document.addEventListener('mousedown', tomarControlUsuario);
+
+    // Si el usuario presiona CUALQUIER TECLA en su computadora
+    document.addEventListener('keydown', tomarControlUsuario);
+
+    // 7. Freno de seguridad: si ya dio clic antes, que no se mueva solo al cargar
+    if (sessionStorage.getItem('manual-unmsm') === 'activo') {
+        clearInterval(temporizadorPagina);
+    }
+
+
+</script>
+
+
+<script>
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    // LA TABLA Z REAL DE TU DOCUMENTO (Fila = primer decimal, Columna = .00 a .09)
+    const TABLA_NORMAL_REAL = {
+        0.0: [0.5000, 0.4960, 0.4920, 0.4880, 0.4841, 0.4801, 0.4761, 0.4721, 0.4681, 0.4641],
+        0.1: [0.4602, 0.4562, 0.4522, 0.4483, 0.4443, 0.4404, 0.4364, 0.4325, 0.4286, 0.4247],
+        0.2: [0.4207, 0.4168, 0.4129, 0.4090, 0.4052, 0.4013, 0.3974, 0.3936, 0.3897, 0.3859],
+        0.3: [0.3821, 0.3783, 0.3745, 0.3707, 0.3669, 0.3632, 0.3594, 0.3557, 0.3520, 0.3483],
+        0.4: [0.3446, 0.3409, 0.3372, 0.3336, 0.3300, 0.3264, 0.3228, 0.3192, 0.3156, 0.3121],
+        0.5: [0.3085, 0.3050, 0.3015, 0.2981, 0.2946, 0.2912, 0.2877, 0.2843, 0.2810, 0.2776],
+        0.6: [0.2743, 0.2709, 0.2676, 0.2643, 0.2611, 0.2578, 0.2546, 0.2514, 0.2483, 0.2451],
+        0.7: [0.2420, 0.2389, 0.2358, 0.2327, 0.2296, 0.2266, 0.2236, 0.2206, 0.2177, 0.2148],
+        0.8: [0.2119, 0.2090, 0.2061, 0.2033, 0.2005, 0.1977, 0.1949, 0.1922, 0.1894, 0.1867],
+        0.9: [0.1841, 0.1814, 0.1788, 0.1762, 0.1736, 0.1711, 0.1685, 0.1660, 0.1635, 0.1611],
+        1.0: [0.1587, 0.1562, 0.1539, 0.1515, 0.1492, 0.1469, 0.1446, 0.1423, 0.1401, 0.1379],
+        1.1: [0.1357, 0.1335, 0.1314, 0.1292, 0.1271, 0.1251, 0.1230, 0.1210, 0.1190, 0.1170],
+        1.2: [0.1151, 0.1131, 0.1112, 0.1093, 0.1075, 0.1056, 0.1038, 0.1020, 0.1003, 0.0985],
+        1.3: [0.0968, 0.0951, 0.0934, 0.0918, 0.0901, 0.0885, 0.0869, 0.0853, 0.0838, 0.0823],
+        1.4: [0.0808, 0.0793, 0.0778, 0.0764, 0.0749, 0.0735, 0.0721, 0.0708, 0.0694, 0.0681],
+        1.5: [0.0668, 0.0655, 0.0643, 0.0630, 0.0618, 0.0606, 0.0594, 0.0582, 0.0571, 0.0559],
+        1.6: [0.0548, 0.0537, 0.0526, 0.0516, 0.0505, 0.0495, 0.0485, 0.0475, 0.0465, 0.0455],
+        1.7: [0.0446, 0.0436, 0.0427, 0.0418, 0.0409, 0.0401, 0.0392, 0.0384, 0.0375, 0.0367],
+        1.8: [0.0359, 0.0351, 0.0344, 0.0336, 0.0329, 0.0322, 0.0314, 0.0307, 0.0301, 0.0294],
+        1.9: [0.0287, 0.0281, 0.0274, 0.0268, 0.0262, 0.0256, 0.0250, 0.0244, 0.0239, 0.0233],
+        2.0: [0.0228, 0.0222, 0.0217, 0.0212, 0.0207, 0.0202, 0.0197, 0.0192, 0.0188, 0.0183],
+        2.1: [0.0179, 0.0174, 0.0170, 0.0166, 0.0162, 0.0158, 0.0154, 0.0150, 0.0146, 0.0143],
+        2.2: [0.0139, 0.0136, 0.0132, 0.0129, 0.0125, 0.0122, 0.0119, 0.0116, 0.0113, 0.0110],
+        2.3: [0.0107, 0.0104, 0.0102, 0.0099, 0.0096, 0.0094, 0.0091, 0.0089, 0.0087, 0.0084],
+        2.4: [0.0082, 0.0080, 0.0078, 0.0075, 0.0073, 0.0071, 0.0069, 0.0068, 0.0066, 0.0064],
+        2.5: [0.0062, 0.0060, 0.0059, 0.0057, 0.0055, 0.0054, 0.0052, 0.0051, 0.0049, 0.0048],
+        2.6: [0.0047, 0.0045, 0.0044, 0.0043, 0.0041, 0.0040, 0.0039, 0.0038, 0.0037, 0.0036],
+        2.7: [0.0035, 0.0034, 0.0033, 0.0032, 0.0031, 0.0030, 0.0029, 0.0028, 0.0027, 0.0026],
+        2.8: [0.0026, 0.0025, 0.0024, 0.0023, 0.0023, 0.0022, 0.0021, 0.0021, 0.0020, 0.0019],
+        2.9: [0.0019, 0.0018, 0.0018, 0.0017, 0.0016, 0.0016, 0.0015, 0.0015, 0.0014, 0.0014],
+        3.0: [0.0013, 0.0013, 0.0013, 0.0012, 0.0012, 0.0011, 0.0110, 0.0100, 0.0100]
+    };
+
+    function obtenerZDeTabla(areaColaBuscada) {
+        let menorDiferencia = Infinity;
+        let zFila = 0.0;
+        let zCol = 0;
+
+        for (let clave in TABLA_NORMAL_REAL) {
+            let filaNumerica = parseFloat(clave);
+            let columnas = TABLA_NORMAL_REAL[clave];
+            for (let c = 0; c < columnas.length; c++) {
+                let diff = Math.abs(columnas[c] - areaColaBuscada);
+                if (diff < menorDiferencia) {
+                    menorDiferencia = diff;
+                    zFila = filaNumerica;
+                    zCol = c;
+                }
+            }
+        }
+        return zFila + (zCol / 100);
+    }
+
+    document.getElementById('calc_btnMuestra').addEventListener('click', () => {
+        let poblacionN = parseInt(document.getElementById('calc_inputN').value);
+        let inputNC = document.getElementById('calc_inputNC').value.trim().replace('%', '');
+        let inputP = document.getElementById('calc_inputP').value.trim().replace('%', '');
+
+        let ncPorcentaje = parseFloat(inputNC);
+        let pPorcentaje = parseFloat(inputP);
+        
+        const resZ = document.getElementById('calc_resZ');
+        const resE = document.getElementById('calc_resE');
+        const resFinal = document.getElementById('calc_muestra_final');
+
+        if (isNaN(poblacionN) || poblacionN <= 1 || isNaN(ncPorcentaje) || ncPorcentaje <= 0 || ncPorcentaje >= 100 || isNaN(pPorcentaje) || pPorcentaje <= 0 || pPorcentaje >= 100) {
+            resFinal.innerText = "#ERROR!";
+            resZ.innerText = "-";
+            resE.innerText = "-";
+            return;
+        }
+
+        let ncDecimal = ncPorcentaje / 100;
+        let margenErrorE = 1 - ncDecimal; 
+        resE.innerText = (margenErrorE * 100).toFixed(0) + "% (" + margenErrorE.toFixed(2) + ")";
+
+        let areaCola = margenErrorE / 2;
+        let valorZ = obtenerZDeTabla(areaCola);
+
+        if (ncPorcentaje === 92) valorZ = 1.75069;
+        if (ncPorcentaje === 95) valorZ = 1.95996;
+        if (ncPorcentaje === 99) valorZ = 2.57583;
+        if (ncPorcentaje === 90) valorZ = 1.64485;
+        if (ncPorcentaje === 80) valorZ = 1.28155;
+
+        resZ.innerText = valorZ.toFixed(5);
+
+        let p = pPorcentaje / 100; 
+        let q = 1 - p;             
+
+        let zCuadrado = valorZ * valorZ;
+        let eCuadrado = margenErrorE * margenErrorE;
+
+        let numerador = poblacionN * zCuadrado * p * q;
+        let denominador = (eCuadrado * (poblacionN - 1)) + (zCuadrado * p * q);
+
+        let nCalculado = numerador / denominador;
+        let nFinal = Math.ceil(nCalculado);
+
+        if (nFinal > poblacionN) nFinal = poblacionN;
+
+        resFinal.innerText = nFinal + " usuarios";
+    });
+
+    document.getElementById('calc_btnMuestra').click();
+});
+
+
+</script>
+
+</body>
+</html>
+
